@@ -1,13 +1,15 @@
 import { MinusIcon, PlusIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-// Define the prop types for the MenuCard component
+// Update the Item type to include quantity
 type Item = {
+  _id: string;
   name: string;
   price: number;
   image: string;
   nonVeg: boolean;
-  availability: boolean; // Ensure this is defined
+  availability: boolean;
+  quantity?: number; // Add quantity as an optional property
 };
 
 type MenuCardProps = {
@@ -20,19 +22,41 @@ const MenuCard = ({ item, onAddToCart, onRemoveFromCart }: MenuCardProps) => {
   const [quantity, setQuantity] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
+  // Load quantity from local storage on mount
+  useEffect(() => {
+    const storedCart: Item[] = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingItem = storedCart.find(cartItem => cartItem._id === item._id);
+    if (existingItem) {
+      setQuantity(existingItem.quantity ?? 0); // Use nullish coalescing to default to 0 if undefined
+      setAddedToCart((existingItem.quantity ?? 0) > 0); // Ensure quantity is not undefined
+    }
+  }, [item._id]);
+
   const handleIncrease = () => {
-    setQuantity(quantity + 1);
+    const newQuantity = quantity + 1;
+    setQuantity(newQuantity);
+    onAddToCart(item, newQuantity);
   };
 
   const handleDecrease = () => {
     if (quantity > 0) {
-      setQuantity(quantity - 1);
+      const newQuantity = quantity - 1;
+      setQuantity(newQuantity);
+      if (newQuantity === 0) {
+        setAddedToCart(false);
+        onRemoveFromCart(item);
+      } else {
+        onAddToCart(item, newQuantity);
+      }
     }
   };
 
   const handleAddToCart = () => {
-    setAddedToCart(true);
-    onAddToCart(item, quantity || 1);
+    if (quantity === 0) {
+      setQuantity(1);
+      setAddedToCart(true);
+      onAddToCart(item, 1);
+    }
   };
 
   const {
@@ -73,7 +97,10 @@ const MenuCard = ({ item, onAddToCart, onRemoveFromCart }: MenuCardProps) => {
             </button>
           ) : (
             <div className="flex items-center w-full">
-              <button className="transition-all duration-300 ease-in-out bg-[#597445] text-white py-2 rounded-lg hover:bg-[#4f6737] shadow-md w-3/4">
+              <button
+                onClick={handleAddToCart}
+                className="transition-all duration-300 ease-in-out bg-[#597445] text-white py-2 rounded-lg hover:bg-[#4f6737] shadow-md w-3/4"
+              >
                 Added
               </button>
               <div className="flex items-center ml-4">

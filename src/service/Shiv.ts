@@ -19,3 +19,9 @@ export const fetchKitchenStatus = async () => {
   const response = await apiClient.get('/kitchen/');
   return response.data;
 };
+
+
+export const placeOrder = async (orderData : any) => {
+  const response = await apiClient.post('/order', orderData);
+  return response.data;
+};

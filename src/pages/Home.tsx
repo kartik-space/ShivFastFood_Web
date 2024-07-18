@@ -1,21 +1,24 @@
 import MenuCard from "@/components/MenuCard";
 import useGetItems from "@/hooks/useGetItems";
 import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
-import { SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.jpg";
 import waiter from "../assets/waiter.jpg";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
+import logo from "../assets/logo.jpg";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
 
 interface Item {
+  _id: string; // Add _id to the Item interface
   name: string;
   price: number;
   image: string;
   nonVeg: boolean;
   availability: boolean;
+  quantity?: number; 
 }
 
 interface ModalProps {
@@ -39,17 +42,20 @@ const Modal: React.FC<ModalProps> = ({ isOpen }) => {
 const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [cartCount, setCartCount] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: items, error, isLoading } = useGetItems();
   const { isAvailable } = useGetKitchenStatus();
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
     setIsModalOpen(!isAvailable); 
   }, [isAvailable]);
 
-  if (error) {
-    console.error("Error fetching items:", error);
-  }
+  // Load cart count from localStorage on mount
+  useEffect(() => {
+    const storedCart: Item[] = JSON.parse(localStorage.getItem('cart') || '[]');
+    const totalItems = storedCart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    setCartCount(totalItems);
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -59,12 +65,32 @@ const Home: React.FC = () => {
     setSearchTerm("");
   };
 
-  const handleAddToCart = (item: Item) => {
-    setCartCount(cartCount + 1);
+  const handleAddToCart = (item: Item, quantity: number) => {
+    const storedCart: Item[] = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingItem = storedCart.find(cartItem => cartItem._id === item._id);
+
+    if (existingItem) {
+      existingItem.quantity = (existingItem.quantity ?? 0) + quantity; // Use nullish coalescing to ensure quantity is defined
+    } else {
+      storedCart.push({ ...item, quantity }); // Add new item with quantity
+    }
+
+    localStorage.setItem('cart', JSON.stringify(storedCart));
+    
+    // Update cart count
+    const totalItems = storedCart.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
+    setCartCount(totalItems); // Update cart count
   };
 
   const handleRemoveFromCart = (item: Item) => {
-    setCartCount(cartCount > 0 ? cartCount - 1 : 0);
+    const storedCart: Item[] = JSON.parse(localStorage.getItem('cart') || '[]');
+    const updatedCart = storedCart.filter(cartItem => cartItem._id !== item._id);
+    
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+
+    // Update cart count
+    const totalItems = updatedCart.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
+    setCartCount(totalItems);
   };
 
   const filteredItems =
@@ -134,7 +160,7 @@ const Home: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      </div> 
 
       <main className="container mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold mb-6 text-center">Menu</h1>
@@ -144,12 +170,12 @@ const Home: React.FC = () => {
           ) : error ? (
             <p>Error loading items: {error.message}</p>
           ) : (
-            items?.map((item: Item, index: number) => (
+            items?.map((item: Item) => (
               <MenuCard
-                key={index}
+                key={item._id} // Use _id as key
                 item={item}
                 onAddToCart={handleAddToCart}
-                onRemoveFromCart={handleRemoveFromCart}
+                onRemoveFromCart={handleRemoveFromCart} // Pass the onRemove function
               />
             ))
           )}

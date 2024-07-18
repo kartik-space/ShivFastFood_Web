@@ -1,19 +1,32 @@
+import usePlaceOrder from "@/hooks/usePlaceOrder";
 import { ArrowLeft, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+
+
+interface Item {
+  _id: string; // Use _id for identification
+  name: string;
+  price: number;
+  quantity: number; // Add quantity to Item
+}
 
 const Cart = () => {
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "Spaghetti", price: 12.99, quantity: 2 },
-    { id: 2, name: "Burger", price: 9.99, quantity: 1 },
-    { id: 3, name: "Salad", price: 7.99, quantity: 3 },
-  ]);
+  const [cartItems, setCartItems] = useState<Item[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const navigate = useNavigate();
+  
+  const { submitOrder, loading, error } = usePlaceOrder();
+
+  // Load cart items from local storage on mount
+  useEffect(() => {
+    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    setCartItems(storedCart);
+  }, []);
 
   const totalCost = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -21,15 +34,41 @@ const Cart = () => {
   );
 
   const handlePlaceOrder = () => {
+    if (!fullName || !phoneNumber || !address) {
+      alert("Please fill in all personal details."); // Alert the user
+      return;
+    }
     setIsModalOpen(true);
   };
+  
 
-  const handleConfirmOrder = () => {
-    // Reset cart or navigate away
-    navigate('/order-confirmation');
-    setCartItems([]);
+  const handleConfirmOrder = async () => {
+    const orderData = {
+      customerName: fullName,
+      customerPhoneNo: phoneNumber,
+      customerAddress: address,
+      items: cartItems.map(item => ({
+        foodItem: item._id,
+        quantity: item.quantity,
+      })),
+      totalAmount: totalCost,
+    };
+  
+    console.log("Order Data:", orderData); // Log the order data before sending
+  
+    const response = await submitOrder(orderData); // Get the response
+  
+    if (!error) {
+      console.log("Order Response:", response); // Log the response
+      navigate("/order-confirmation");
+      setCartItems([]);
+      localStorage.removeItem("cart"); // Clear cart from local storage
+    }
+  
     setIsModalOpen(false);
   };
+  
+  
 
   const handleCancelOrder = () => {
     setIsModalOpen(false);
@@ -37,24 +76,27 @@ const Cart = () => {
 
   const handleEmptyCart = () => {
     setCartItems([]); // Clear the cart items
+    localStorage.removeItem("cart"); // Clear from local storage
   };
 
   const handleIncrease = (id: any) => {
-    setCartItems(
-      cartItems.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item._id === id ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
+    localStorage.setItem('cart', JSON.stringify(cartItems)); // Update local storage
   };
 
   const handleDecrease = (id: any) => {
-    setCartItems(
-      cartItems.map((item) =>
-        item.id === id && item.quantity > 1
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item._id === id && item.quantity > 1
           ? { ...item, quantity: item.quantity - 1 }
           : item
       )
     );
+    localStorage.setItem('cart', JSON.stringify(cartItems)); // Update local storage
   };
 
   return (
@@ -67,12 +109,11 @@ const Cart = () => {
         <h1 className="text-2xl font-semibold">Cart</h1>
       </div>
 
+      {/* Personal Details Form */}
       <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-lg">
         <h2 className="text-xl font-semibold mb-2">Personal Details</h2>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Full Name
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Full Name</label>
           <input
             type="text"
             value={fullName}
@@ -81,9 +122,7 @@ const Cart = () => {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Phone Number
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Phone Number</label>
           <input
             type="text"
             value={phoneNumber}
@@ -92,9 +131,7 @@ const Cart = () => {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Address
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Address</label>
           <textarea
             value={address}
             onChange={(e) => setAddress(e.target.value)}
@@ -103,48 +140,39 @@ const Cart = () => {
         </div>
       </div>
 
+      {/* Order Details */}
       <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-lg mt-4">
         <h2 className="text-xl font-semibold mb-2">Order Details</h2>
         <div className="divide-y divide-gray-200">
           {cartItems.length === 0 ? (
-            <div className="py-2 text-center text-gray-500">
-              Your cart is empty.
-            </div>
+            <div className="py-2 text-center text-gray-500">Your cart is empty.</div>
           ) : (
             cartItems.map((item) => (
-              <div
-                key={item.id}
-                className="py-2 flex justify-between items-center"
-              >
-                <span className="w-1/3">{item.name}</span>{" "}
-                {/* Fixed width for item name */}
+              <div key={item._id} className="py-2 flex justify-between items-center">
+                <span className="w-1/3">{item.name}</span>
                 <div className="flex items-center w-1/3 justify-center">
-                  {" "}
-                  {/* Fixed width for buttons */}
                   <button
-                    onClick={() => handleDecrease(item.id)}
+                    onClick={() => handleDecrease(item._id)}
                     className="p-1 border border-gray-400 rounded-l-lg hover:bg-gray-200 transition duration-150 ease-in-out"
                   >
                     <Minus className="w-4 h-4 text-black" />
                   </button>
                   <span className="px-2">{item.quantity}</span>
                   <button
-                    onClick={() => handleIncrease(item.id)}
+                    onClick={() => handleIncrease(item._id)}
                     className="p-1 border border-gray-400 rounded-r-lg hover:bg-gray-200 transition duration-150 ease-in-out"
                   >
                     <Plus className="w-4 h-4 text-black" />
                   </button>
                 </div>
-                <span className="w-1/3 text-right">
-                  ${(item.price * item.quantity).toFixed(2)}
-                </span>{" "}
-                {/* Fixed width for total price */}
+                <span className="w-1/3 text-right">${(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))
           )}
         </div>
       </div>
 
+      {/* Total Cost */}
       <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-lg mt-4">
         <h2 className="text-xl font-semibold mb-2">Total Cost</h2>
         <div className="flex justify-between">
@@ -153,6 +181,7 @@ const Cart = () => {
         </div>
       </div>
 
+      {/* Action Buttons */}
       <div className="flex justify-between w-full max-w-lg mt-4">
         <button
           onClick={handleEmptyCart}
@@ -174,6 +203,8 @@ const Cart = () => {
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 sm:mx-0">
             <h2 className="text-lg font-semibold mb-4">Confirm Your Order</h2>
             <p className="mb-4">Are you sure you want to place this order?</p>
+            {error && <p className="text-red-500">{error.message}</p>}
+
             <div className="flex justify-between">
               <button
                 onClick={handleCancelOrder}
@@ -184,8 +215,9 @@ const Cart = () => {
               <button
                 onClick={handleConfirmOrder}
                 className="bg-[#597445] text-white py-2 px-4 rounded-lg hover:bg-[#4f6737] transition duration-200"
+                disabled={loading} // Disable while loading
               >
-                Place Order
+                {loading ? 'Placing Order...' : 'Confirm Order'}
               </button>
             </div>
           </div>
