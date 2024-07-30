@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useGetItems from "@/hooks/useGetItems";
 import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
-import { SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
+import {
+  Phone,
+  PhoneForwarded,
+  SearchIcon,
+  ShoppingCartIcon,
+  XIcon,
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.jpg";
@@ -12,13 +18,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 
 // Item interface for each food item
 interface Item {
-  _id: string; 
+  _id: string;
   name: string;
   price: number;
   image: string;
   nonVeg: boolean;
   availability: boolean;
-  quantity?: number; 
+  quantity?: number;
 }
 
 // ModalProps interface for Modal component
@@ -80,20 +86,22 @@ const Home: React.FC = () => {
     const existingItem = storedCart.find(
       (cartItem) => cartItem._id === item._id
     );
-  
+
     if (existingItem) {
       existingItem.quantity = (existingItem.quantity ?? 0) + quantityChange;
       // If quantity becomes zero, remove item
       if (existingItem.quantity <= 0) {
-        const index = storedCart.findIndex(cartItem => cartItem._id === item._id);
+        const index = storedCart.findIndex(
+          (cartItem) => cartItem._id === item._id
+        );
         storedCart.splice(index, 1);
       }
     } else {
       storedCart.push({ ...item, quantity: quantityChange });
     }
-  
+
     localStorage.setItem("cart", JSON.stringify(storedCart)); // Update local storage
-  
+
     // Update cart count
     const totalItems = storedCart.reduce(
       (sum, item) => sum + (item.quantity ?? 0),
@@ -108,9 +116,9 @@ const Home: React.FC = () => {
     const updatedCart = storedCart.filter(
       (cartItem) => cartItem._id !== item._id
     );
-  
+
     localStorage.setItem("cart", JSON.stringify(updatedCart)); // Update local storage
-  
+
     // Update cart count
     const totalItems = updatedCart.reduce(
       (sum, item) => sum + (item.quantity ?? 0),
@@ -120,13 +128,13 @@ const Home: React.FC = () => {
   };
 
   // Filter and slice items based on the search term
-  const filteredItems = 
-    items?.filter((item: Item) => 
+  const filteredItems =
+    items?.filter((item: Item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
   // Slice the filtered items array if needed
-  const slicedItems = filteredItems.slice(0, 10); // Change 10 to your desired slice size
+  // const slicedItems = filteredItems.slice(0, 10); // Change 10 to your desired slice size
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -200,7 +208,7 @@ const Home: React.FC = () => {
           ) : error ? (
             <p>Error loading items: {error.message}</p>
           ) : (
-            slicedItems.map((item: Item) => (
+            filteredItems.map((item: Item) => (
               <MenuCard
                 key={item._id}
                 item={item}
@@ -211,6 +219,21 @@ const Home: React.FC = () => {
           )}
         </div>
       </main>
+      {/* make a footer here */}
+      <footer className="bg-white  py-6 mt-auto">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8 flex flex-col md:flex-row justify-center gap-2 md:gap-3 items-center">
+          <p className="text-sm text-center md:text-left mb-0 md:mb-0">
+            Get you own app and website by calling us now!
+          </p>
+          <a
+            href="tel:+918595257175"
+            className="bg-blue-600 text-white text-sm font-semibold flex gap-2 py-2 px-4 items-center justify-center rounded-full hover:bg-blue-500 transition duration-300"
+          >
+            <div>Call Now</div>
+            <Phone size={15} />
+          </a>
+        </div>
+      </footer>
     </div>
   );
 };
