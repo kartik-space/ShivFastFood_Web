@@ -1,0 +1,35 @@
+import { useEffect, useState } from "react";
+import { Route, Routes } from "react-router-dom";
+import Loader from "./components/Loader";
+import Cart from "./pages/Cart";
+import Home from "./pages/Home";
+import OrderConfirmation from "./pages/OrderConfirmation";
+
+
+function App() {
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer); 
+  }, []);
+
+  return (
+    <>
+      {loading ? (
+        <Loader />
+      ) : (
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/order-confirmation" element={<OrderConfirmation />} /> 
+        </Routes>
+      )}
+    </>
+  );
+}
+
+export default App;
