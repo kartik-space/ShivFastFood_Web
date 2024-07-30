@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useGetItems from "@/hooks/useGetItems";
 import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
-import {
-  Phone,
-  PhoneForwarded,
-  SearchIcon,
-  ShoppingCartIcon,
-  XIcon,
-} from "lucide-react";
+import { Phone, SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.jpg";
@@ -223,7 +217,7 @@ const Home: React.FC = () => {
       <footer className="bg-white  py-6 mt-auto">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 flex flex-col md:flex-row justify-center gap-2 md:gap-3 items-center">
           <p className="text-sm text-center md:text-left mb-0 md:mb-0">
-            Get you own app and website by calling us now!
+            Get you own app and website like this.
           </p>
           <a
             href="tel:+918595257175"
