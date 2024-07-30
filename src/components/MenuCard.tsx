@@ -20,7 +20,6 @@ type MenuCardProps = {
 
 const MenuCard = ({ item, onAddToCart, onRemoveFromCart }: MenuCardProps) => {
   const [quantity, setQuantity] = useState(0);
-  const [addedToCart, setAddedToCart] = useState(false);
 
   // Load quantity from local storage on mount
   useEffect(() => {
@@ -28,14 +27,14 @@ const MenuCard = ({ item, onAddToCart, onRemoveFromCart }: MenuCardProps) => {
     const existingItem = storedCart.find(cartItem => cartItem._id === item._id);
     if (existingItem) {
       setQuantity(existingItem.quantity ?? 0); // Use nullish coalescing to default to 0 if undefined
-      setAddedToCart((existingItem.quantity ?? 0) > 0); // Ensure quantity is not undefined
     }
   }, [item._id]);
+
 
   const handleIncrease = () => {
     const newQuantity = quantity + 1;
     setQuantity(newQuantity);
-    onAddToCart(item, newQuantity);
+    onAddToCart(item, 1);  // Add one item at a time
   };
 
   const handleDecrease = () => {
@@ -43,10 +42,9 @@ const MenuCard = ({ item, onAddToCart, onRemoveFromCart }: MenuCardProps) => {
       const newQuantity = quantity - 1;
       setQuantity(newQuantity);
       if (newQuantity === 0) {
-        setAddedToCart(false);
-        onRemoveFromCart(item);
+        onRemoveFromCart(item);  // Remove item from cart if quantity is 0
       } else {
-        onAddToCart(item, newQuantity);
+        onAddToCart(item, -1);  // Remove one item at a time
       }
     }
   };
@@ -54,8 +52,7 @@ const MenuCard = ({ item, onAddToCart, onRemoveFromCart }: MenuCardProps) => {
   const handleAddToCart = () => {
     if (quantity === 0) {
       setQuantity(1);
-      setAddedToCart(true);
-      onAddToCart(item, 1);
+      onAddToCart(item, 1);  // Add one item to cart
     }
   };
 
@@ -87,7 +84,7 @@ const MenuCard = ({ item, onAddToCart, onRemoveFromCart }: MenuCardProps) => {
         </div>
 
         <div className="flex items-center mt-4">
-          {!addedToCart ? (
+        {quantity === 0 ? (
             <button
               onClick={handleAddToCart}
               className={`w-full ${!availability ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#597445] hover:bg-[#4f6737]'} text-white py-2 rounded-lg transition duration-300 ease-in-out shadow-md`}

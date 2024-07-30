@@ -79,25 +79,30 @@ const Cart = () => {
     localStorage.removeItem("cart"); // Clear from local storage
   };
 
-  const handleIncrease = (id: any) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
+  const handleIncrease = (id: string) => {
+    setCartItems((prevItems) => {
+      const updatedItems = prevItems.map((item) =>
         item._id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-    localStorage.setItem('cart', JSON.stringify(cartItems)); // Update local storage
+      );
+      localStorage.setItem("cart", JSON.stringify(updatedItems)); // Update local storage with new state
+      return updatedItems;
+    });
   };
-
-  const handleDecrease = (id: any) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item._id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
-    localStorage.setItem('cart', JSON.stringify(cartItems)); // Update local storage
+  
+  const handleDecrease = (id: string) => {
+    setCartItems((prevItems) => {
+      const updatedItems = prevItems
+        .map((item) =>
+          item._id === id && item.quantity > 1
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0); // Remove item if quantity goes to zero
+      localStorage.setItem("cart", JSON.stringify(updatedItems)); // Update local storage with new state
+      return updatedItems;
+    });
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">

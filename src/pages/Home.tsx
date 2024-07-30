@@ -1,18 +1,18 @@
 import MenuCard from "@/components/MenuCard";
-import useGetItems from "@/hooks/useGetItems";
-import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import waiter from "../assets/waiter.jpg";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import useGetItems from "@/hooks/useGetItems";
+import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
 import { SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import logo from "../assets/logo.jpg";
+import waiter from "../assets/waiter.jpg";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 
+// Item interface for each food item
 interface Item {
-  _id: string; // Add _id to the Item interface
+  _id: string; 
   name: string;
   price: number;
   image: string;
@@ -21,10 +21,12 @@ interface Item {
   quantity?: number; 
 }
 
+// ModalProps interface for Modal component
 interface ModalProps {
   isOpen: boolean;
 }
 
+// Modal component to display when the restaurant is closed
 const Modal: React.FC<ModalProps> = ({ isOpen }) => {
   if (!isOpen) return null;
 
@@ -39,60 +41,85 @@ const Modal: React.FC<ModalProps> = ({ isOpen }) => {
   );
 };
 
+// Home component for displaying the menu
 const Home: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [cartCount, setCartCount] = useState(0);
-  const { data: items, error, isLoading } = useGetItems();
-  const { isAvailable } = useGetKitchenStatus();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    setIsModalOpen(!isAvailable); 
-  }, [isAvailable]);
+  const [searchTerm, setSearchTerm] = useState(""); // State to hold search term
+  const [cartCount, setCartCount] = useState(0); // State to hold number of items in the cart
+  const { data: items, error, isLoading } = useGetItems(); // Fetching items
+  const { isAvailable } = useGetKitchenStatus(); // Fetching kitchen status
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to show/hide the modal
 
   // Load cart count from localStorage on mount
   useEffect(() => {
-    const storedCart: Item[] = JSON.parse(localStorage.getItem('cart') || '[]');
-    const totalItems = storedCart.reduce((sum, item) => sum + (item.quantity || 0), 0);
-    setCartCount(totalItems);
+    const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
+    const totalItems = storedCart.reduce(
+      (sum, item) => sum + (item.quantity || 0),
+      0
+    );
+    setCartCount(totalItems); // Set initial cart count
   }, []);
 
+  // Show modal when the restaurant is closed
+  useEffect(() => {
+    setIsModalOpen(!isAvailable);
+  }, [isAvailable]);
+
+  // Update the search term
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
+  // Clear the search term
   const handleClear = () => {
     setSearchTerm("");
   };
 
-  const handleAddToCart = (item: Item, quantity: number) => {
-    const storedCart: Item[] = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItem = storedCart.find(cartItem => cartItem._id === item._id);
-
+  // Add item to cart
+  const handleAddToCart = (item: Item, quantityChange: number = 1) => {
+    const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existingItem = storedCart.find(
+      (cartItem) => cartItem._id === item._id
+    );
+  
     if (existingItem) {
-      existingItem.quantity = (existingItem.quantity ?? 0) + quantity; // Use nullish coalescing to ensure quantity is defined
+      existingItem.quantity = (existingItem.quantity ?? 0) + quantityChange;
+      // If quantity becomes zero, remove item
+      if (existingItem.quantity <= 0) {
+        const index = storedCart.findIndex(cartItem => cartItem._id === item._id);
+        storedCart.splice(index, 1);
+      }
     } else {
-      storedCart.push({ ...item, quantity }); // Add new item with quantity
+      storedCart.push({ ...item, quantity: quantityChange });
     }
-
-    localStorage.setItem('cart', JSON.stringify(storedCart));
-    
+  
+    localStorage.setItem("cart", JSON.stringify(storedCart)); // Update local storage
+  
     // Update cart count
-    const totalItems = storedCart.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
-    setCartCount(totalItems); // Update cart count
+    const totalItems = storedCart.reduce(
+      (sum, item) => sum + (item.quantity ?? 0),
+      0
+    );
+    setCartCount(totalItems); // Update state with the new cart count
   };
 
+  // Remove item from cart
   const handleRemoveFromCart = (item: Item) => {
-    const storedCart: Item[] = JSON.parse(localStorage.getItem('cart') || '[]');
-    const updatedCart = storedCart.filter(cartItem => cartItem._id !== item._id);
-    
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-
+    const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
+    const updatedCart = storedCart.filter(
+      (cartItem) => cartItem._id !== item._id
+    );
+  
+    localStorage.setItem("cart", JSON.stringify(updatedCart)); // Update local storage
+  
     // Update cart count
-    const totalItems = updatedCart.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
-    setCartCount(totalItems);
+    const totalItems = updatedCart.reduce(
+      (sum, item) => sum + (item.quantity ?? 0),
+      0
+    );
+    setCartCount(totalItems); // Update state with the new cart count
   };
 
+  // Filter items based on the search term
   const filteredItems =
     items?.filter((item: Item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -160,7 +187,7 @@ const Home: React.FC = () => {
             </div>
           )}
         </div>
-      </div> 
+      </div>
 
       <main className="container mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold mb-6 text-center">Menu</h1>
@@ -172,10 +199,10 @@ const Home: React.FC = () => {
           ) : (
             items?.map((item: Item) => (
               <MenuCard
-                key={item._id} // Use _id as key
+                key={item._id}
                 item={item}
                 onAddToCart={handleAddToCart}
-                onRemoveFromCart={handleRemoveFromCart} // Pass the onRemove function
+                onRemoveFromCart={handleRemoveFromCart}
               />
             ))
           )}
