@@ -119,11 +119,14 @@ const Home: React.FC = () => {
     setCartCount(totalItems); // Update state with the new cart count
   };
 
-  // Filter items based on the search term
-  const filteredItems =
-    items?.filter((item: Item) =>
+  // Filter and slice items based on the search term
+  const filteredItems = 
+    items?.filter((item: Item) => 
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
+
+  // Slice the filtered items array if needed
+  const slicedItems = filteredItems.slice(0, 10); // Change 10 to your desired slice size
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -197,7 +200,7 @@ const Home: React.FC = () => {
           ) : error ? (
             <p>Error loading items: {error.message}</p>
           ) : (
-            items?.map((item: Item) => (
+            slicedItems.map((item: Item) => (
               <MenuCard
                 key={item._id}
                 item={item}
