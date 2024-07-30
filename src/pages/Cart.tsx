@@ -3,8 +3,6 @@ import { ArrowLeft, Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-
-
 interface Item {
   _id: string; // Use _id for identification
   name: string;
@@ -19,7 +17,7 @@ const Cart = () => {
   const [cartItems, setCartItems] = useState<Item[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  
+
   const { submitOrder, loading, error } = usePlaceOrder();
 
   // Load cart items from local storage on mount
@@ -40,35 +38,32 @@ const Cart = () => {
     }
     setIsModalOpen(true);
   };
-  
 
   const handleConfirmOrder = async () => {
     const orderData = {
       customerName: fullName,
       customerPhoneNo: phoneNumber,
       customerAddress: address,
-      items: cartItems.map(item => ({
+      items: cartItems.map((item) => ({
         foodItem: item._id,
         quantity: item.quantity,
       })),
       totalAmount: totalCost,
     };
-  
+
     console.log("Order Data:", orderData); // Log the order data before sending
-  
+
     const response = await submitOrder(orderData); // Get the response
-  
+
     if (!error) {
       console.log("Order Response:", response); // Log the response
       navigate("/order-confirmation");
       setCartItems([]);
       localStorage.removeItem("cart"); // Clear cart from local storage
     }
-  
+
     setIsModalOpen(false);
   };
-  
-  
 
   const handleCancelOrder = () => {
     setIsModalOpen(false);
@@ -88,7 +83,7 @@ const Cart = () => {
       return updatedItems;
     });
   };
-  
+
   const handleDecrease = (id: string) => {
     setCartItems((prevItems) => {
       const updatedItems = prevItems
@@ -102,7 +97,6 @@ const Cart = () => {
       return updatedItems;
     });
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
@@ -118,7 +112,9 @@ const Cart = () => {
       <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-lg">
         <h2 className="text-xl font-semibold mb-2">Personal Details</h2>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Full Name</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Full Name
+          </label>
           <input
             type="text"
             value={fullName}
@@ -127,7 +123,9 @@ const Cart = () => {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Phone Number
+          </label>
           <input
             type="text"
             value={phoneNumber}
@@ -136,7 +134,9 @@ const Cart = () => {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Address</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Address
+          </label>
           <textarea
             value={address}
             onChange={(e) => setAddress(e.target.value)}
@@ -150,10 +150,15 @@ const Cart = () => {
         <h2 className="text-xl font-semibold mb-2">Order Details</h2>
         <div className="divide-y divide-gray-200">
           {cartItems.length === 0 ? (
-            <div className="py-2 text-center text-gray-500">Your cart is empty.</div>
+            <div className="py-2 text-center text-gray-500">
+              Your cart is empty.
+            </div>
           ) : (
             cartItems.map((item) => (
-              <div key={item._id} className="py-2 flex justify-between items-center">
+              <div
+                key={item._id}
+                className="py-2 flex justify-between items-center"
+              >
                 <span className="w-1/3">{item.name}</span>
                 <div className="flex items-center w-1/3 justify-center">
                   <button
@@ -170,7 +175,10 @@ const Cart = () => {
                     <Plus className="w-4 h-4 text-black" />
                   </button>
                 </div>
-                <span className="w-1/3 text-right">${(item.price * item.quantity).toFixed(2)}</span>
+                <span className="w-1/3 text-right">
+                  {" "}
+                  ₹{(item.price * item.quantity).toFixed(2)}{" "}
+                </span>
               </div>
             ))
           )}
@@ -182,8 +190,11 @@ const Cart = () => {
         <h2 className="text-xl font-semibold mb-2">Total Cost</h2>
         <div className="flex justify-between">
           <span>Total</span>
-          <span>${totalCost.toFixed(2)}</span>
+          <span> ₹{totalCost.toFixed(2)}</span>
         </div>
+        <span className="font-semibold text-xs mt-4">
+          Payment Mode : Pay on Delivery (UPI)
+        </span>
       </div>
 
       {/* Action Buttons */}
@@ -222,7 +233,7 @@ const Cart = () => {
                 className="bg-[#597445] text-white py-2 px-4 rounded-lg hover:bg-[#4f6737] transition duration-200"
                 disabled={loading} // Disable while loading
               >
-                {loading ? 'Placing Order...' : 'Confirm Order'}
+                {loading ? "Placing Order..." : "Confirm Order"}
               </button>
             </div>
           </div>
