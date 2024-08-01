@@ -29,3 +29,7 @@ export const register = async (uid: any) => {
   const response = await apiClient.post("/user/register", { uid });
   return response.data;
 };
+export const getHistory = async (uid: any) => {
+  const response = await apiClient.post("/user/get-order-history", { uid });
+  return response.data;
+};
