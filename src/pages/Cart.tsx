@@ -15,10 +15,14 @@ const Cart = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const [cartItems, setCartItems] = useState<Item[]>([]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const { submitOrder, loading, error } = usePlaceOrder();
+
+  // fetching the uid from local storage
+  const uid = localStorage.getItem("user");
 
   // Load cart items from local storage on mount
   useEffect(() => {
@@ -49,6 +53,7 @@ const Cart = () => {
         quantity: item.quantity,
       })),
       totalAmount: totalCost,
+      uid,
     };
 
     console.log("Order Data:", orderData); // Log the order data before sending

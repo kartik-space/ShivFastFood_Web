@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import logo from "../assets/logo.jpg";
 import waiter from "../assets/waiter.jpg";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import useRegisterUser from "@/hooks/useUserRegister";
 
 // Item interface for each food item
 interface Item {
@@ -48,7 +49,7 @@ const Home: React.FC = () => {
   const { data: items, error, isLoading } = useGetItems(); // Fetching items
   const { isAvailable } = useGetKitchenStatus(); // Fetching kitchen status
   const [isModalOpen, setIsModalOpen] = useState(false); // State to show/hide the modal
-
+  const registerUser = useRegisterUser();
   // Load cart count from localStorage on mount
   useEffect(() => {
     const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -74,6 +75,39 @@ const Home: React.FC = () => {
     setSearchTerm("");
   };
 
+  useEffect(() => {
+    if (!localStorage.getItem("user")) {
+      const generateUUID = () => {
+        // If the browser supports crypto API
+        if (window.crypto && window.crypto.getRandomValues) {
+          let array = new Uint32Array(4);
+          window.crypto.getRandomValues(array);
+          let uuid = "";
+          for (let i = 0; i < array.length; i++) {
+            uuid += array[i].toString(16).padStart(8, "0");
+          }
+          return uuid;
+        } else {
+          // Fallback for older browsers
+          return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+            /[xy]/g,
+            function (c) {
+              let r = (Math.random() * 16) | 0,
+                v = c == "x" ? r : (r & 0x3) | 0x8;
+              return v.toString(16);
+            }
+          );
+        }
+      };
+
+      const userId = generateUUID();
+      localStorage.setItem("user", userId);
+      console.log(userId);
+
+      // Call the registerUser mutation
+      registerUser.mutate({ uid: userId });
+    }
+  }, [registerUser]);
   // Add item to cart
   const handleAddToCart = (item: Item, quantityChange: number = 1) => {
     const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
