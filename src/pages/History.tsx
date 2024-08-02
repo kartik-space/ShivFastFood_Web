@@ -1,5 +1,5 @@
 import useGetHistory from "@/hooks/useGetHistory";
-import { Phone, StepBack, CheckCircle, MoveLeft } from "lucide-react";
+import { Phone, CheckCircle, MoveLeft } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const History = () => {
@@ -18,7 +18,7 @@ const History = () => {
     return <div className="text-center mt-5">No Order Found</div>;
   }
 
-  const getStatusClass = (status, currentStatus) => {
+  const getStatusClass = (status: any, currentStatus: any) => {
     const statusOrder = ["PLACED", "ACCEPTED", "DELIVERED"];
     const currentIndex = statusOrder.indexOf(currentStatus);
     const statusIndex = statusOrder.indexOf(status);
@@ -38,7 +38,7 @@ const History = () => {
     return "bg-gray-300 border-gray-300 text-gray-300";
   };
 
-  const getLineClass = (status, currentStatus) => {
+  const getLineClass = (status: any, currentStatus: any) => {
     const statusOrder = ["PLACED", "ACCEPTED", "DELIVERED"];
     const currentIndex = statusOrder.indexOf(currentStatus);
     const statusIndex = statusOrder.indexOf(status);
@@ -59,7 +59,7 @@ const History = () => {
       </header>
       <main className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {data.user.orders.map((order) => (
+          {data.user.orders.map((order: any) => (
             <div
               key={order._id}
               className="bg-white p-6 rounded-lg shadow-md transform transition duration-300 hover:shadow-xl hover:scale-105"
