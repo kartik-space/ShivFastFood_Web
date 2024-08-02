@@ -5,11 +5,18 @@ import useGetItems from "@/hooks/useGetItems";
 import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
 import { Phone, SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import logo from "../assets/logo.jpg";
 import waiter from "../assets/waiter.jpg";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Avatar, AvatarImage } from "../components/ui/avatar";
 import useRegisterUser from "@/hooks/useUserRegister";
+import user from "../assets/user.png";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Item interface for each food item
 interface Item {
@@ -180,10 +187,21 @@ const Home: React.FC = () => {
               </span>
             )}
           </Link>
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+          {/*  */}
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Avatar className="items-center justify-center">
+                <AvatarImage className="w-8 h-8" src={user} />
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem className="cursor-pointer">
+                <NavLink to="/order-history">Order History</NavLink>
+              </DropdownMenuItem>
+              {/* <DropdownMenuItem className="cursor-pointer">Billing</DropdownMenuItem> */}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/*  */}
         </div>
       </header>
 
