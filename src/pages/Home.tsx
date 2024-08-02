@@ -8,14 +8,13 @@ import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../assets/logo.jpg";
 import waiter from "../assets/waiter.jpg";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Avatar, AvatarImage } from "../components/ui/avatar";
 import useRegisterUser from "@/hooks/useUserRegister";
 import user from "../assets/user.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
