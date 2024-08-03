@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance
 const apiClient = axios.create({
-  baseURL: "https://shiv-fast-food-backend-wuq9.onrender.com/api/v1",
+  baseURL: "https://shiv-fastfood-backend-1.onrender.com/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -31,5 +31,11 @@ export const register = async (uid: any) => {
 };
 export const getHistory = async (uid: any) => {
   const response = await apiClient.post("/user/get-order-history", { uid });
+  return response.data;
+};
+
+
+export const fetchCategories = async () => {
+  const response = await apiClient.get("/category/");
   return response.data;
 };

@@ -1,22 +1,23 @@
 import MenuCard from "@/components/MenuCard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import useGetItems from "@/hooks/useGetItems";
-import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
-import { Phone, SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import logo from "../assets/logo.jpg";
-import waiter from "../assets/waiter.jpg";
-import { Avatar, AvatarImage } from "../components/ui/avatar";
-import useRegisterUser from "@/hooks/useUserRegister";
-import user from "../assets/user.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import useGetCategories from "@/hooks/useGetCategories";
+import useGetItems from "@/hooks/useGetItems";
+import useGetKitchenStatus from "@/hooks/useGetKitchenStatus";
+import useRegisterUser from "@/hooks/useUserRegister";
+import { Phone, SearchIcon, ShoppingCartIcon, XIcon } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
+import logo from "../assets/logo.jpg";
+import user from "../assets/user.png";
+import waiter from "../assets/waiter.jpg";
+import { Avatar, AvatarImage } from "../components/ui/avatar";
 
 // Item interface for each food item
 interface Item {
@@ -27,6 +28,7 @@ interface Item {
   nonVeg: boolean;
   availability: boolean;
   quantity?: number;
+  // category: string;
 }
 
 // ModalProps interface for Modal component
@@ -49,35 +51,35 @@ const Modal: React.FC<ModalProps> = ({ isOpen }) => {
   );
 };
 
-// Home component for displaying the menu
+
+
 const Home: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState(""); // State to hold search term
-  const [cartCount, setCartCount] = useState(0); // State to hold number of items in the cart
-  const { data: items, error, isLoading } = useGetItems(); // Fetching items
-  const { isAvailable } = useGetKitchenStatus(); // Fetching kitchen status
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to show/hide the modal
+  const [searchTerm, setSearchTerm] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+  const { data: items, error, isLoading } = useGetItems();
+  const { isAvailable } = useGetKitchenStatus();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const registerUser = useRegisterUser();
-  // Load cart count from localStorage on mount
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { data: categories, isLoading: categoriesLoading } = useGetCategories();
+
   useEffect(() => {
     const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
     const totalItems = storedCart.reduce(
       (sum, item) => sum + (item.quantity || 0),
       0
     );
-    setCartCount(totalItems); // Set initial cart count
+    setCartCount(totalItems);
   }, []);
 
-  // Show modal when the restaurant is closed
   useEffect(() => {
     setIsModalOpen(!isAvailable);
   }, [isAvailable]);
 
-  // Update the search term
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
-  // Clear the search term
   const handleClear = () => {
     setSearchTerm("");
   };
@@ -85,7 +87,6 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (!localStorage.getItem("user")) {
       const generateUUID = () => {
-        // If the browser supports crypto API
         if (window.crypto && window.crypto.getRandomValues) {
           let array = new Uint32Array(4);
           window.crypto.getRandomValues(array);
@@ -95,7 +96,6 @@ const Home: React.FC = () => {
           }
           return uuid;
         } else {
-          // Fallback for older browsers
           return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
             /[xy]/g,
             function (c) {
@@ -111,11 +111,10 @@ const Home: React.FC = () => {
       localStorage.setItem("user", userId);
       console.log(userId);
 
-      // Call the registerUser mutation
       registerUser.mutate({ uid: userId });
     }
   }, [registerUser]);
-  // Add item to cart
+
   const handleAddToCart = (item: Item, quantityChange: number = 1) => {
     const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItem = storedCart.find(
@@ -124,7 +123,6 @@ const Home: React.FC = () => {
 
     if (existingItem) {
       existingItem.quantity = (existingItem.quantity ?? 0) + quantityChange;
-      // If quantity becomes zero, remove item
       if (existingItem.quantity <= 0) {
         const index = storedCart.findIndex(
           (cartItem) => cartItem._id === item._id
@@ -135,41 +133,40 @@ const Home: React.FC = () => {
       storedCart.push({ ...item, quantity: quantityChange });
     }
 
-    localStorage.setItem("cart", JSON.stringify(storedCart)); // Update local storage
+    localStorage.setItem("cart", JSON.stringify(storedCart));
 
-    // Update cart count
     const totalItems = storedCart.reduce(
       (sum, item) => sum + (item.quantity ?? 0),
       0
     );
-    setCartCount(totalItems); // Update state with the new cart count
+    setCartCount(totalItems);
   };
 
-  // Remove item from cart
   const handleRemoveFromCart = (item: Item) => {
     const storedCart: Item[] = JSON.parse(localStorage.getItem("cart") || "[]");
     const updatedCart = storedCart.filter(
       (cartItem) => cartItem._id !== item._id
     );
 
-    localStorage.setItem("cart", JSON.stringify(updatedCart)); // Update local storage
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
 
-    // Update cart count
     const totalItems = updatedCart.reduce(
       (sum, item) => sum + (item.quantity ?? 0),
       0
     );
-    setCartCount(totalItems); // Update state with the new cart count
+    setCartCount(totalItems);
   };
 
-  // Filter and slice items based on the search term
   const filteredItems =
-    items?.filter((item: Item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
-
-  // Slice the filtered items array if needed
-  // const slicedItems = filteredItems.slice(0, 10); // Change 10 to your desired slice size
+    items?.filter((item: Item) => {
+      const matchesSearch = item.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory
+        ? item.category === selectedCategory
+        : true;
+      return matchesSearch && matchesCategory;
+    }) || [];
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -187,7 +184,6 @@ const Home: React.FC = () => {
               </span>
             )}
           </Link>
-          {/*  */}
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Avatar className="items-center justify-center">
@@ -198,10 +194,8 @@ const Home: React.FC = () => {
               <DropdownMenuItem className="cursor-pointer">
                 <NavLink to="/order-history">Order History</NavLink>
               </DropdownMenuItem>
-              {/* <DropdownMenuItem className="cursor-pointer">Billing</DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
-          {/*  */}
         </div>
       </header>
 
@@ -247,7 +241,40 @@ const Home: React.FC = () => {
       </div>
 
       <main className="container mx-auto px-4 py-6">
-        <h1 className="text-3xl font-bold mb-6 text-center">Menu</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Menu</h1>
+
+        <div className="flex justify-center mt-4 py-8">
+        {/* Scrollable container for categories */}
+        <div className="w-full overflow-x-auto">
+          <div className="flex space-x-4 pb-2">
+            <Button
+              onClick={() => setSelectedCategory(null)}
+              className={`${
+                selectedCategory === null
+                  ? "bg-black text-white"
+                  : "bg-gray-200 text-black"
+              } px-4 py-2 rounded-md whitespace-nowrap transition duration-300 ease-in-out transform hover:scale-105`}
+            >
+              All
+            </Button>
+            {categories?.map((category  :any) => (
+              <Button
+                key={category._id}
+                onClick={() => setSelectedCategory(category.name)}
+                style={{ textTransform: 'capitalize' }}
+                className={`${
+                  selectedCategory === category.name
+                    ? "bg-black text-white"
+                    : "bg-gray-200 text-black"
+                } px-4 py-2 rounded-md whitespace-nowrap transition duration-300 ease-in-out transform hover:scale-105 hover:bg-black hover:text-white `}
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {isLoading ? (
             <p>Loading...</p>
@@ -265,11 +292,11 @@ const Home: React.FC = () => {
           )}
         </div>
       </main>
-      {/* make a footer here */}
-      <footer className="bg-white  py-6 mt-auto">
+
+      <footer className="bg-white py-6 mt-auto">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 flex flex-col md:flex-row justify-center gap-2 md:gap-3 items-center">
           <p className="text-sm text-center md:text-left mb-0 md:mb-0">
-            Get you own app and website like this.
+            Get your own app and website like this.
           </p>
           <a
             href="tel:+918595257175"
